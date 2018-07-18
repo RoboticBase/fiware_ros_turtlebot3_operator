@@ -49,6 +49,10 @@ class CommandReceiver(object):
         raw_command = msg.data
         logger.infof('received command={}', raw_command)
 
+        if not self.__current_odometry:
+            logger.warnf('can not get current odometry')
+            return
+
         if raw_command == 'circle':
             with self._moving():
                 self._do_circle()
