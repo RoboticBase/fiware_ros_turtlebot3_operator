@@ -1,0 +1,6 @@
+<launch>
+  <node name="command_receiver" pkg="fiware_ros_turtlebot3_operator" type="command_receiver.py" output="screen">
+    <rosparam command="delete" param=""/>
+    <rosparam command="load" file="$(find fiware_ros_turtlebot3_operator)/config/config.yaml"/>
+  </node>
+</launch>
