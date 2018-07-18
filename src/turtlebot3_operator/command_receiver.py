@@ -72,10 +72,9 @@ class CommandReceiver(object):
         odom = copy.deepcopy(self.__current_odometry)
 
         start_qt = odom.pose.pose.orientation
+        start_pos = odom.pose.pose.position
         start_zrot = euler_from_quaternion([start_qt.x, start_qt.y, start_qt.z, start_qt.w])[2]
-        oposite_zrot = euler_from_quaternion(quaternion_multiply([start_qt.x, start_qt.y, start_qt.z, start_qt.w],
-                                                                 quaternion_about_axis(math.pi, [0, 0, 1])))[2]
-        path_to_oposite = False
+        moved_a_certain_distance = False
 
         twist = Twist()
         twist.linear.x = self.__params['turtlebot3']['circle']['velocities']['x']
@@ -83,16 +82,20 @@ class CommandReceiver(object):
 
         r = rospy.Rate(self.__params['turtlebot3']['rate_hz'])
         rot_threshold = self.__params['turtlebot3']['circle']['thresholds']['angular_rad']
+        dist_threshold = self.__params['turtlebot3']['circle']['thresholds']['dist_meter']
         while not rospy.is_shutdown() and self.__is_moving:
             current_qt = self.__current_odometry.pose.pose.orientation
             current_zrot = euler_from_quaternion([current_qt.x, current_qt.y, current_qt.z, current_qt.w])[2]
-            if path_to_oposite and abs(current_zrot - start_zrot) < rot_threshold:
+            if moved_a_certain_distance and abs(current_zrot - start_zrot) < rot_threshold:
                 break
             else:
                 self.__turtlebot3_cmd_pub.publish(twist)
-                if not path_to_oposite and abs(current_zrot - oposite_zrot) < rot_threshold:
-                    logger.infof('pass the oposite position')
-                    path_to_oposite = True
+                current_pos = self.__current_odometry.pose.pose.position
+                current_dist = math.sqrt(math.pow(start_pos.x - current_pos.x, 2) + math.pow(start_pos.y - current_pos.y, 2))
+
+                if not moved_a_certain_distance and current_dist > dist_threshold:
+                    logger.infof('moved a certain distance, current_dist={}', current_dist)
+                    moved_a_certain_distance = True
             r.sleep()
 
         self.__turtlebot3_cmd_pub.publish(Twist())

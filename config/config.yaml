@@ -5,10 +5,11 @@ turtlebot3:
   rate_hz: 10
   circle:
     velocities:
-      x: 0.15
-      z: 0.3
+      x: 0.1
+      z: 0.4
     thresholds:
-      angular_rad: 0.03
+      dist_meter: 0.1
+      angular_rad: 0.02
   polygon:
     velocities:
       x: 0.2
@@ -16,6 +17,7 @@ turtlebot3:
     edge:
       length_meter: 0.4
     thresholds:
+      dist_meter: 0.01
       angular_rad: 0.02
   topics:
     cmd_pub: "/cmd_vel"
