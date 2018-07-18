@@ -10,7 +10,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 
-from turtlebot3_operator.logging import getLogger
+from fiware_ros_turtlebot3_operator.logging import getLogger
 logger = getLogger(__name__)
 
 

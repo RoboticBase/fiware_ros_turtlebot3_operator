@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import rospy
 
-from turtlebot3_operator.command_receiver import CommandReceiver
+from fiware_ros_turtlebot3_operator.command_receiver import CommandReceiver
 
 NODE_NAME = 'command_receiver'
 

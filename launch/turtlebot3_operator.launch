@@ -1,6 +1,0 @@
-<launch>
-  <node name="command_receiver" pkg="turtlebot3_operator" type="command_receiver.py" output="screen">
-    <rosparam command="delete" param=""/>
-    <rosparam command="load" file="$(find turtlebot3_operator)/config/config.yaml"/>
-  </node>
-</launch>
