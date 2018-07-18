@@ -14,27 +14,21 @@ from turtlebot3_operator.logging import getLogger
 logger = getLogger(__name__)
 
 
-COMMAND_SUB = '/turtlebot3_bridge/command'
-TURTLEBOT3_cmd = '/cmd_vel'
-LINEAR_X = 0.2
-ANGULAR_Z = 0.3
-
-TURTLEBOT3_CMD_PUB = '/cmd_vel'
-
-TURTLEBOT3_ODOM_SUB = '/odom'
-ROT_THRESHOLD_RAD = 0.02
-
-EDGE_LENGTH_METER = 1.0
-
-ROS_RATE = 10
-
-
 class CommandReceiver(object):
     def __init__(self):
         super(CommandReceiver, self).__init__()
-        self.__command_sub = rospy.Subscriber(COMMAND_SUB, String, self._on_command_receive, queue_size=10)
-        self.__turtlebot3_cmd_pub = rospy.Publisher(TURTLEBOT3_CMD_PUB, Twist, queue_size=10)
-        self.__turtlebot3_odom_pub = rospy.Subscriber(TURTLEBOT3_ODOM_SUB, Odometry, self._on_odom_receive, queue_size=10)
+        self.__params = rospy.get_param('~')
+        self.__command_sub = rospy.Subscriber(self.__params['bridge']['topics']['cmd_sub'],
+                                              String,
+                                              self._on_command_receive,
+                                              queue_size=10)
+        self.__turtlebot3_cmd_pub = rospy.Publisher(self.__params['turtlebot3']['topics']['cmd_pub'],
+                                                    Twist,
+                                                    queue_size=10)
+        self.__turtlebot3_odom_pub = rospy.Subscriber(self.__params['turtlebot3']['topics']['odom_sub'],
+                                                      Odometry,
+                                                      self._on_odom_receive,
+                                                      queue_size=10)
 
         self.__current_odometry = None
         self.__is_moving = False
@@ -84,56 +78,60 @@ class CommandReceiver(object):
         path_to_oposite = False
 
         twist = Twist()
-        twist.linear.x = LINEAR_X
-        twist.angular.z = ANGULAR_Z
+        twist.linear.x = self.__params['turtlebot3']['circle']['velocities']['x']
+        twist.angular.z = self.__params['turtlebot3']['circle']['velocities']['z']
 
-        r = rospy.Rate(ROS_RATE)
+        r = rospy.Rate(self.__params['turtlebot3']['rate_hz'])
+        rot_threshold = self.__params['turtlebot3']['circle']['thresholds']['angular_rad']
         while not rospy.is_shutdown() and self.__is_moving:
             current_qt = self.__current_odometry.pose.pose.orientation
             current_zrot = euler_from_quaternion([current_qt.x, current_qt.y, current_qt.z, current_qt.w])[2]
-            if path_to_oposite and abs(current_zrot - start_zrot) < ROT_THRESHOLD_RAD:
-                self.__turtlebot3_cmd_pub.publish(Twist())
+            if path_to_oposite and abs(current_zrot - start_zrot) < rot_threshold:
                 break
             else:
                 self.__turtlebot3_cmd_pub.publish(twist)
-                if not path_to_oposite and abs(current_zrot - oposite_zrot) < ROT_THRESHOLD_RAD:
+                if not path_to_oposite and abs(current_zrot - oposite_zrot) < rot_threshold:
                     logger.infof('pass the oposite position')
                     path_to_oposite = True
             r.sleep()
-        logger.infof('stop _do_circle')
+
+        self.__turtlebot3_cmd_pub.publish(Twist())
+        logger.infof('end _do_circle')
 
     def _do_square(self):
         logger.infof('start _do_square')
 
+        edge_length = self.__params['turtlebot3']['polygon']['edge']['length_meter']
         start_odom = copy.deepcopy(self.__current_odometry)
-        self._forward(start_odom, EDGE_LENGTH_METER)
+        self._forward(start_odom, edge_length)
         self._rotate(start_odom, math.pi/2)
         odom = copy.deepcopy(self.__current_odometry)
-        self._forward(odom, EDGE_LENGTH_METER)
+        self._forward(odom, edge_length)
         self._rotate(start_odom, math.pi)
         odom = copy.deepcopy(self.__current_odometry)
-        self._forward(odom, EDGE_LENGTH_METER)
+        self._forward(odom, edge_length)
         self._rotate(start_odom, math.pi * 3/2)
         odom = copy.deepcopy(self.__current_odometry)
-        self._forward(odom, EDGE_LENGTH_METER)
+        self._forward(odom, edge_length)
         self._rotate(start_odom, math.pi * 2)
 
-        logger.infof('stop _do_square')
+        logger.infof('end _do_square')
 
     def _do_triangle(self):
         logger.infof('start _do_triangle')
 
+        edge_length = self.__params['turtlebot3']['polygon']['edge']['length_meter']
         start_odom = copy.deepcopy(self.__current_odometry)
-        self._forward(start_odom, EDGE_LENGTH_METER)
+        self._forward(start_odom, edge_length)
         self._rotate(start_odom, math.pi * 2/3)
         odom = copy.deepcopy(self.__current_odometry)
-        self._forward(odom, EDGE_LENGTH_METER)
+        self._forward(odom, edge_length)
         self._rotate(start_odom, math.pi * 4/3)
         odom = copy.deepcopy(self.__current_odometry)
-        self._forward(odom, EDGE_LENGTH_METER)
+        self._forward(odom, edge_length)
         self._rotate(start_odom, math.pi * 2)
 
-        logger.infof('stop _do_triangle')
+        logger.infof('end _do_triangle')
 
     def _forward(self, start_odometry, dist):
         logger.infof('start _forward, dist={}', dist)
@@ -141,19 +139,19 @@ class CommandReceiver(object):
         start_pos = start_odometry.pose.pose.position
 
         twist = Twist()
-        twist.linear.x = LINEAR_X
+        twist.linear.x = self.__params['turtlebot3']['polygon']['velocities']['x']
 
-        r = rospy.Rate(ROS_RATE)
+        r = rospy.Rate(self.__params['turtlebot3']['rate_hz'])
         while not rospy.is_shutdown() and self.__is_moving:
             current_pos = self.__current_odometry.pose.pose.position
             if math.pow(start_pos.x - current_pos.x, 2) + math.pow(start_pos.y - current_pos.y, 2) >= math.pow(dist, 2):
-                self.__turtlebot3_cmd_pub.publish(Twist())
                 break
             else:
                 self.__turtlebot3_cmd_pub.publish(twist)
             r.sleep()
 
-        logger.infof('stop _forward')
+        self.__turtlebot3_cmd_pub.publish(Twist())
+        logger.infof('end _forward')
 
     def _rotate(self, start_odometry, angle):
         logger.infof('start _rotate, angle={}', angle)
@@ -163,19 +161,21 @@ class CommandReceiver(object):
                                                                 quaternion_about_axis(angle, [0, 0, 1])))[2]
 
         twist = Twist()
-        twist.angular.z = ANGULAR_Z
+        twist.angular.z = self.__params['turtlebot3']['polygon']['velocities']['z']
 
-        r = rospy.Rate(ROS_RATE)
+        r = rospy.Rate(self.__params['turtlebot3']['rate_hz'])
+        rot_threshold = self.__params['turtlebot3']['polygon']['thresholds']['angular_rad']
         while not rospy.is_shutdown() and self.__is_moving:
             current_qt = self.__current_odometry.pose.pose.orientation
             current_zrot = euler_from_quaternion([current_qt.x, current_qt.y, current_qt.z, current_qt.w])[2]
-            if abs(current_zrot - target_zrot) < ROT_THRESHOLD_RAD:
-                self.__turtlebot3_cmd_pub.publish(Twist())
+            if abs(current_zrot - target_zrot) < rot_threshold:
                 break
             else:
                 self.__turtlebot3_cmd_pub.publish(twist)
             r.sleep()
-        logger.infof('stop _rotate')
+
+        self.__turtlebot3_cmd_pub.publish(Twist())
+        logger.infof('end _rotate')
 
     @contextmanager
     def _moving(self):
