@@ -56,6 +56,18 @@ class CommandReceiver(object):
         elif raw_command == 'triangle':
             with self._moving():
                 self._do_triangle()
+        elif raw_command == 'up':
+            with self._moving():
+                self._do_up()
+        elif raw_command == 'down':
+            with self._moving():
+                self._do_down()
+        elif raw_command == 'left':
+            with self._moving():
+                self._do_left()
+        elif raw_command == 'right':
+            with self._moving():
+                self._do_right()
         elif raw_command == 'stop':
             with self.__lock:
                 self.__is_moving = False
@@ -136,13 +148,51 @@ class CommandReceiver(object):
 
         logger.infof('end _do_triangle')
 
-    def _forward(self, start_odometry, dist):
+    def _do_up(self):
+        logger.infof('start _do_up')
+
+        unit_length = self.__params['turtlebot3']['unit']['length_meter']
+        start_odom = copy.deepcopy(self.__current_odometry)
+        self._forward(start_odom, unit_length)
+
+        logger.infof('end _do_up')
+
+    def _do_down(self):
+        logger.infof('start _do_down')
+
+        unit_length = self.__params['turtlebot3']['unit']['length_meter']
+        start_odom = copy.deepcopy(self.__current_odometry)
+        self._forward(start_odom, unit_length, reverse=True)
+
+        logger.infof('end _do_down')
+
+    def _do_left(self):
+        logger.infof('start _do_left')
+
+        unit_theta = self.__params['turtlebot3']['unit']['theta_rad']
+        start_odom = copy.deepcopy(self.__current_odometry)
+        self._rotate(start_odom, unit_theta)
+
+        logger.infof('end _do_left')
+
+    def _do_right(self):
+        logger.infof('start _do_right')
+
+        unit_theta = self.__params['turtlebot3']['unit']['theta_rad']
+        start_odom = copy.deepcopy(self.__current_odometry)
+        self._rotate(start_odom, -1 * unit_theta, reverse=True)
+
+        logger.infof('end _do_right')
+
+    def _forward(self, start_odometry, dist, reverse=False):
         logger.infof('start _forward, dist={}', dist)
 
         start_pos = start_odometry.pose.pose.position
 
         twist = Twist()
         twist.linear.x = self.__params['turtlebot3']['polygon']['velocities']['x']
+        if reverse:
+            twist.linear.x *= -1
 
         r = rospy.Rate(self.__params['turtlebot3']['rate_hz'])
         while not rospy.is_shutdown() and self.__is_moving:
@@ -156,7 +206,7 @@ class CommandReceiver(object):
         self.__turtlebot3_cmd_pub.publish(Twist())
         logger.infof('end _forward')
 
-    def _rotate(self, start_odometry, angle):
+    def _rotate(self, start_odometry, angle, reverse=False):
         logger.infof('start _rotate, angle={}', angle)
 
         start_qt = start_odometry.pose.pose.orientation
@@ -165,6 +215,8 @@ class CommandReceiver(object):
 
         twist = Twist()
         twist.angular.z = self.__params['turtlebot3']['polygon']['velocities']['z']
+        if reverse:
+            twist.angular.z *= -1
 
         r = rospy.Rate(self.__params['turtlebot3']['rate_hz'])
         rot_threshold = self.__params['turtlebot3']['polygon']['thresholds']['angular_rad']

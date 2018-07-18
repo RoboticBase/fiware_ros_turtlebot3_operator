@@ -19,6 +19,9 @@ turtlebot3:
     thresholds:
       dist_meter: 0.01
       angular_rad: 0.02
+  unit:
+    length_meter: 0.1
+    theta_rad: 0.17453292519
   topics:
     cmd_pub: "/cmd_vel"
     odom_sub: "/odom"
