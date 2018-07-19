@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import copy
 import math
-from threading import Lock
-from contextlib import contextmanager
+import threading
 
 import rospy
 from tf.transformations import quaternion_about_axis, quaternion_multiply, euler_from_quaternion
@@ -32,7 +31,7 @@ class CommandReceiver(object):
 
         self.__current_odometry = None
         self.__is_moving = False
-        self.__lock = Lock()
+        self.__lock = threading.Lock()
 
     def start(self):
         logger.infof('CommandReceiver start')
@@ -48,26 +47,19 @@ class CommandReceiver(object):
             return
 
         if raw_command == 'circle':
-            with self._moving():
-                self._do_circle()
+            self._move(self._do_circle)
         elif raw_command == 'square':
-            with self._moving():
-                self._do_square()
+            self._move(self._do_square)
         elif raw_command == 'triangle':
-            with self._moving():
-                self._do_triangle()
+            self._move(self._do_triangle)
         elif raw_command == 'up':
-            with self._moving():
-                self._do_up()
+            self._move(self._do_up)
         elif raw_command == 'down':
-            with self._moving():
-                self._do_down()
+            self._move(self._do_down)
         elif raw_command == 'left':
-            with self._moving():
-                self._do_left()
+            self._move(self._do_left)
         elif raw_command == 'right':
-            with self._moving():
-                self._do_right()
+            self._move(self._do_right)
         elif raw_command == 'stop':
             with self.__lock:
                 self.__is_moving = False
@@ -232,12 +224,17 @@ class CommandReceiver(object):
         self.__turtlebot3_cmd_pub.publish(Twist())
         logger.infof('end _rotate')
 
-    @contextmanager
-    def _moving(self):
-        try:
+    def _move(self, callback):
+        def func():
+            if self.__is_moving:
+                logger.infof('now moving')
+                return
+
             with self.__lock:
                 self.__is_moving = True
-            yield
-        finally:
+
+            callback()
+
             with self.__lock:
                 self.__is_moving = False
+        threading.Thread(target=func).start()
