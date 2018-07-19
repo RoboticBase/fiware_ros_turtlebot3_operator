@@ -18,17 +18,17 @@ class CommandReceiver(object):
     def __init__(self):
         super(CommandReceiver, self).__init__()
         self.__params = rospy.get_param('~')
-        self.__command_sub = rospy.Subscriber(self.__params['bridge']['topics']['cmd_sub'],
-                                              String,
-                                              self._on_command_receive,
-                                              queue_size=10)
+        rospy.Subscriber(self.__params['bridge']['topics']['cmd_sub'],
+                         String,
+                         self._on_command_receive,
+                         queue_size=10)
         self.__turtlebot3_cmd_pub = rospy.Publisher(self.__params['turtlebot3']['topics']['cmd_pub'],
                                                     Twist,
                                                     queue_size=10)
-        self.__turtlebot3_odom_pub = rospy.Subscriber(self.__params['turtlebot3']['topics']['odom_sub'],
-                                                      Odometry,
-                                                      self._on_odom_receive,
-                                                      queue_size=10)
+        rospy.Subscriber(self.__params['turtlebot3']['topics']['odom_sub'],
+                         Odometry,
+                         self._on_odom_receive,
+                         queue_size=10)
 
         self.__current_odometry = None
         self.__is_moving = False

@@ -3,4 +3,8 @@
     <rosparam command="delete" param=""/>
     <rosparam command="load" file="$(find fiware_ros_turtlebot3_operator)/config/config.yaml"/>
   </node>
+  <node name="attributes_sender" pkg="fiware_ros_turtlebot3_operator" type="attributes_sender.py" output="screen">
+    <rosparam command="delete" param=""/>
+    <rosparam command="load" file="$(find fiware_ros_turtlebot3_operator)/config/config.yaml"/>
+  </node>
 </launch>
