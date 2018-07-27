@@ -237,4 +237,6 @@ class CommandReceiver(object):
 
             with self.__lock:
                 self.__is_moving = False
-        threading.Thread(target=func).start()
+        t = threading.Thread(target=func)
+        t.start()
+        return t
