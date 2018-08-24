@@ -11,7 +11,6 @@ RUN mv /bin/sh /bin/sh_tmp && ln -s /bin/bash /bin/sh
 RUN apt update && apt upgrade -y && \
     apt install git python-pip -y && \
     apt-get install ros-kinetic-tf -y && \
-    git clone https://github.com/tech-sketch/fiware_ros_turtlebot3_bridge.git src/fiware_ros_turtlebot3_bridge && \
     source /opt/ros/kinetic/setup.bash && \
     /opt/ros/kinetic/bin/catkin_make && \
     echo "source /opt/ros/kinetic/setup.bash" >> /root/.bashrc && \
