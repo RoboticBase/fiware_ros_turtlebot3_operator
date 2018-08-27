@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+import os
 import math
 import threading
 
@@ -16,7 +17,7 @@ logger = getLogger(__name__)
 class CommandReceiver(object):
     def __init__(self):
         super(CommandReceiver, self).__init__()
-        self.__params = rospy.get_param('~')
+        self.__params = self._override_params(rospy.get_param('~'))
         rospy.Subscriber(self.__params['bridge']['topics']['cmd_sub'],
                          String,
                          self._on_command_receive,
@@ -32,6 +33,44 @@ class CommandReceiver(object):
         self.__current_odometry = None
         self.__is_moving = False
         self.__lock = threading.Lock()
+
+    def _override_params(self, params):
+        if 'CIRCLE_VELOCITIES_X' in os.environ:
+            try:
+                cvx = float(os.environ['CIRCLE_VELOCITIES_X'])
+                params['turtlebot3']['circle']['velocities']['x'] = cvx
+                logger.infof("override params['turtlebot3']['circle']['velocities']['x'] = {}", cvx)
+            except (ValueError, TypeError):
+                pass
+        if 'CIRCLE_VELOCITIES_Z' in os.environ:
+            try:
+                cvz = float(os.environ['CIRCLE_VELOCITIES_Z'])
+                params['turtlebot3']['circle']['velocities']['z'] = cvz
+                logger.infof("override params['turtlebot3']['circle']['velocities']['z'] = {}", cvz)
+            except (ValueError, TypeError):
+                pass
+        if 'POLYGON_VELOCITIES_X' in os.environ:
+            try:
+                pvx = float(os.environ['POLYGON_VELOCITIES_X'])
+                params['turtlebot3']['polygon']['velocities']['x'] = pvx
+                logger.infof("override params['turtlebot3']['polygon']['velocities']['x'] = {}", pvx)
+            except (ValueError, TypeError):
+                pass
+        if 'POLYGON_VELOCITIES_Z' in os.environ:
+            try:
+                pvz = float(os.environ['POLYGON_VELOCITIES_Z'])
+                params['turtlebot3']['polygon']['velocities']['z'] = pvz
+                logger.infof("override params['turtlebot3']['polygon']['velocities']['z'] = {}", pvz)
+            except (ValueError, TypeError):
+                pass
+        if 'POLYGON_EDGE_LENGTH' in os.environ:
+            try:
+                pel = float(os.environ['POLYGON_EDGE_LENGTH'])
+                params['turtlebot3']['polygon']['edge']['length_meter'] = pel
+                logger.infof("override params['turtlebot3']['polygon']['edge']['length_meter'] = {}", pel)
+            except (ValueError, TypeError):
+                pass
+        return params
 
     def start(self):
         logger.infof('CommandReceiver start')
