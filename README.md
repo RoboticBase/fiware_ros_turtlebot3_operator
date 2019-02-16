@@ -1,7 +1,7 @@
 # fiware_ros_turtlebot3_operator
 This ros package controls "[turtlebot3](http://emanual.robotis.com/docs/en/platform/turtlebot3/overview/)" robot (both actual robot and simulator).
 
-[![TravisCI Status](https://travis-ci.org/tech-sketch/fiware_ros_turtlebot3_operator.svg?branch=master)](https://travis-ci.org/tech-sketch/fiware_ros_turtlebot3_operator)
+[![TravisCI Status](https://travis-ci.org/RoboticBase/fiware_ros_turtlebot3_operator.svg?branch=master)](https://travis-ci.org/RoboticBase/fiware_ros_turtlebot3_operator)
 
 ## Description
 ### `command_receiver`
