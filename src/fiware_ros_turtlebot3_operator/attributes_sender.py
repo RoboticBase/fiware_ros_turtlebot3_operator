@@ -6,7 +6,7 @@ import rospy
 from tf.transformations import euler_from_quaternion
 from nav_msgs.msg import Odometry
 
-from fiware_ros_turtlebot3_msgs.msg import r_pos
+from fiware_ros_msgs.msg import r_pos
 
 from fiware_ros_turtlebot3_operator.logging import getLogger
 logger = getLogger(__name__)
