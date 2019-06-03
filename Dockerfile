@@ -3,8 +3,8 @@ MAINTAINER Nobuyuki Matsui <nobuyuki.matsui@gmail.com>
 
 ENV PYTHONUNBUFFERED 1
 
-ARG MSGS_NAME="fiware_ros_turtlebot3_msgs"
-ARG MSGS_GIT_REPO="https://github.com/RoboticBase/fiware_ros_turtlebot3_msgs.git"
+ARG MSGS_NAME="fiware_ros_msgs"
+ARG MSGS_GIT_REPO="https://github.com/RoboticBase/fiware_ros_msgs.git"
 ARG MSGS_GIT_REV="master"
 
 COPY ./kube_entrypoint.sh /opt/kube_entrypoint.sh
